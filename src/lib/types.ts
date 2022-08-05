@@ -4,12 +4,12 @@
 
 
  interface TrackDataBase {
-  title: string;       // 页面标题
-  url: string;         // 页面 url
+  title: string;                    // 页面标题
+  url: string;                      // 页面 url
   timestamp: DOMHighResTimeStamp;   // 时间戳
-  referrer: string;
-  navigationType: string;
-  userAgent: string;
+  referrer: string;                 // 来源 url
+  // navigationType: string;           // 跳转类型
+  userAgent: string;                // 用户代理
 }
 
 
@@ -24,7 +24,7 @@ export interface ErrorImpl extends TrackDataBase {
  * JSError JS内部错误（包括 Promise 错误）
  */
 interface JSError extends ErrorImpl {
-  errorType: "jsError";     // 错误类型
+  errorType: "jsError";      // 错误类型
   message: string;           // 错误详情
   stack: string;             // 堆栈信息
 }
@@ -101,10 +101,10 @@ interface Paint extends PerformanceImpl {
 export interface BehaviorImpl extends TrackDataBase {
   type:"behavior";
   pageURL:string;
-  uuid: string;           // todo
+  uuid: string;          
 }
 
-interface Pv extends BehaviorImpl {
+export interface Pv extends BehaviorImpl {
   behaviorType:"pv";
 }
 
@@ -115,7 +115,9 @@ interface StayTime extends BehaviorImpl {
 /*--------------------------------------------------- */
 
 
-
+/**
+ * 监控数据类型
+ */
 export type TrackData = (
   JSError | ResourceError | BlankError |
   HttpRequest | Timing | Paint |
@@ -123,3 +125,11 @@ export type TrackData = (
   );
 
 
+/**
+ * RequestIdleCallback(callback[, options]) 
+ * 中 callback 被传入的参数类型
+ */
+export type Deadline = {
+  timeRemaining: () => number // 当前剩余的可用时间
+  didTimeout: boolean // 是否超时
+}
