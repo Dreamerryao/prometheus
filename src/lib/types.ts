@@ -62,7 +62,7 @@ export interface HttpRequest extends TrackDataBase {
   type: "api";
   apiType: "xhr" | "fetch";       // 请求类型
   method: "get" | "post" | ""; // todo
-  pathUrl: number;                // 路径
+  pathUrl: string;                // 路径
   success: boolean;               // 是否成功
   status: number;                 // 状态码
   duration: DOMHighResTimeStamp;  // 持续时间
@@ -132,4 +132,15 @@ export type TrackData = (
 export type Deadline = {
   timeRemaining: () => number // 当前剩余的可用时间
   didTimeout: boolean // 是否超时
+}
+
+// FIXME:看看要不要删掉！
+/**
+ * 正则匹配函数类型
+ */
+export interface RegExpTester {
+  (pattern: RegExp): boolean
+}
+export interface RegExpMatcher {
+  (pattern: RegExp): string
 }

@@ -1,7 +1,6 @@
 import {TrackData, Deadline} from './types.js'
 
-// const baseURL = "/v1/api/upload/"
-const baseURL = "http://localhost:8081/sendBeacon"
+const baseURL = "/v1/api/upload/"
 const hasRequestIdleCallback = ('requestIdleCallback' in window)
 
 /**
@@ -10,8 +9,7 @@ const hasRequestIdleCallback = ('requestIdleCallback' in window)
  */
 function send(data: TrackData):void {
   console.log("sendBeacon", data)
-  // const url = baseURL + data.type;
-  const url = baseURL
+  const url = baseURL + data.type;
 
   if(navigator && navigator.sendBeacon) {
     // navigator.sendBeacon 可用

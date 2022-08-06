@@ -1,7 +1,27 @@
 <!DOCTYPE html>
 <head>
   <title>test</title>
+  <style>
+    button {
+      padding:8px 12px;
+      border:none;
+      border-radius: 5px;
+      background-color: lightsalmon;
+      color:white;
+      font-size: 16px;
+    }
+  </style>
 </head>
 <body>
   <h1>123</h1>
+  <button id="push_state_btn">push state!</button>
+  <button id="replace_state_btn">replace state!</button>
+  <script>
+    const pushStateBtn = document.getElementById('push_state_btn')
+    const replaceStateBtn = document.getElementById('replace_state_btn')
+    pushStateBtn.addEventListener('click', (e) => {
+      console.log('click')
+      history.pushState({}, 'anotherTestPage.html')
+    })
+  </script>
 </body>

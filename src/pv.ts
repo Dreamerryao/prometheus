@@ -12,7 +12,7 @@ export function initPv(): void {
  */
 function sendPv() {
   const { origin, pathname } = document.location
-  const uuid = sessionStorage.getItem("prometheus_uuid")
+  const uuid = localStorage.getItem("prometheus_uuid")
 
   // TODO:基本信息每次都重新获取吗? 还没想好
   const task: Pv = {
@@ -91,7 +91,7 @@ class Session {
       const newTime = `${new Date(0).getTime()}`
       sessionStorage.setItem('session_key', newTime)
     }
-    console.log(Date.now() , "><",  sessionStorage.getItem('session_key'))
+    console.log(Date.now() , "<>",  sessionStorage.getItem('session_key'))
     return +sessionStorage.getItem('session_key') < Date.now()
   }
 
