@@ -2,9 +2,13 @@ import { getBaseData } from "./lib/getBaseData";
 import { addTask } from "./lib/sendBeacon";
 import { Pv } from "./lib/types";
 
+let session: Session
 export function initPv(): void {
   // 新建会话
-  let session: Session = new Session();
+  session = new Session();
+  // 
+  initURLChangeListener()
+  rewritePushState()
 }
 
 /**
@@ -49,10 +53,10 @@ class Session {
    * 页面可见性事件处理函数。
    * 在页面首次打开时，即初始化实例时也执行一次。
    */
-  handlePageVisibility():void {
+  handlePageVisibility(): void {
     // 如果 sessionStorage 中包含有 "session_key"，说明有至少一次有效 Pv。
     // 1. 首次打开页面（在后台），则不作处理
-    if(!sessionStorage.getItem('session_key') && document.hidden) return 
+    if (!sessionStorage.getItem('session_key') && document.hidden) return
 
     // 2. [if]   至少一次有效 Pv 后页面隐藏，刷新会话 以及 清除发送数据的定时器
     // 3. [else] 首次打开页面（在前台），准备发送数据
@@ -61,14 +65,19 @@ class Session {
       this.refreshSession()
       clearTimeout(this.sendPvTimer)
     } else if (this.isExpired()) {
-      // 如果定时器到期页面仍然可见，没有关闭页面，也没有隐藏
-      // 则算作一次有效 pv
-      console.log("setTimeout", new Date())
-      this.sendPvTimer = setTimeout(() => {
-        sendPv()
-      }, 3000)
+      this.startSendPvTimer()
     }
-  } 
+  }
+
+  startSendPvTimer(): void {
+    // 如果定时器到期页面仍然可见，没有关闭页面，也没有隐藏
+    // 则算作一次有效 pv
+    console.log("setTimeout", new Date())
+    clearTimeout(this.sendPvTimer)
+    this.sendPvTimer = setTimeout(() => {
+      sendPv()
+    }, 3000)
+  }
 
   /**
    * 初始化 页面可见性 的监听器
@@ -87,11 +96,11 @@ class Session {
    * @returns true:已过期 false:未过期
    */
   isExpired(): boolean {
-    if(!sessionStorage.getItem('session_key')){
+    if (!sessionStorage.getItem('session_key')) {
       const newTime = `${new Date(0).getTime()}`
       sessionStorage.setItem('session_key', newTime)
     }
-    console.log(Date.now() , "<>",  sessionStorage.getItem('session_key'))
+    console.log(Date.now(), "<>", sessionStorage.getItem('session_key'))
     return +sessionStorage.getItem('session_key') < Date.now()
   }
 
@@ -103,3 +112,43 @@ class Session {
     sessionStorage.setItem('session_key', newTime)
   }
 }
+
+
+
+
+
+
+function initURLChangeListener(): void {
+  // 监听 hash 更改事件
+  window.addEventListener('hashchange', (e) => {
+    console.log('[HashChange]', e)
+  })
+  // 监听 点击后退，前进按钮 / 调用 history.back() / forward() / go()
+  window.addEventListener('popstate', (e) => {
+    console.log('[popState]', e)
+    // location.href 当前 url
+  })
+}
+
+function rewritePushState(): void {
+  if (!history.pushState) return
+  let oldUrl: string = ''
+  const pushState = history.pushState
+  history.pushState = function (data: any, title: string, url?: string | URL): void {
+    if (url === oldUrl) return
+    oldUrl = (url instanceof URL)? url.toString() : url
+    console.log(data, title, url)
+    session.startSendPvTimer()
+    pushState.apply(this, arguments)
+  }
+
+  const replaceState = history.replaceState
+  history.replaceState = function (data: any, title: string, url?: string | URL): void {
+    if(url === oldUrl) return
+    oldUrl = (url instanceof URL)? url.toString() : url
+    console.log(data, title, url)
+    session.startSendPvTimer()
+    pushState.apply(this, arguments)
+  }
+}
+
