@@ -1,42 +1,54 @@
-export function error() {
-    window.addEventListener('error', ev => {
+import { getBaseData } from "./lib/getBaseData";
+import { send } from "./lib/sendBeacon";
+import { JSError,ResourceError } from "./lib/types";
+
+/**
+   * 监控并发送 error 数据
+   */  
+export function error():void {
+    
+    window.addEventListener('error', (ev:ErrorEvent):void  => {
         const target:any = ev.target;
-        // resource error
-        if(target && (target.src || target.href)) {
-            let log = {
-                type: 'error',
-                errorType: 'resourceError',
+        // 判断是否为 resource error
+        if (target && (target.src || target.href)) {
+            const data: ResourceError = {
+                ...getBaseData(),
+                type: "error",
+                errorType: "resouceError",
                 filename: target.src || target.href,
                 errorMessage: ev.message,
                 tagName: target.tagName,
                 //size:,
                 time: ev.timeStamp,
-                stack: ev.error.stack,
             }
-            console.log(log)
-            return(log)
-        }else{ //jsError
+            console.log("sendResouceError", data)
+            send(data);
+        } else { //否则为jsError
             console.log(ev);
-            let log:object = {
-                errorType: 'jsError',
+            const data: JSError = {
+                ...getBaseData(),
+                type: "error",
+                errorType: "jsError",
                 message: ev.message,
                 stack: ev.error.stack,
             }
-            console.log(log)
-            return(log)
-
+            console.log("sendJsError", data)
+            send(data);
         }
     },true);
-    // promiseError
-    window.addEventListener('unhandledrejection', ev => {
+    // 还有promiseError
+    window.addEventListener('unhandledrejection', (ev:PromiseRejectionEvent):void => {
         let reason = ev.reason;
         console.log(ev);
-        let log = {
-            errorType: 'jsError',
+        const data: JSError = {
+            ...getBaseData(),
+            type: "error",
+            errorType: "jsError",
             message: reason.message,
             stack: reason.stack,
         }
-        console.log(log)
-        return(log)
+        console.log("sendJsError", data)
+            send(data);
     })
 }
+
