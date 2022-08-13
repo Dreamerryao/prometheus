@@ -11,12 +11,13 @@ interface PrometheusOption {
 
 }
 export default class Prometheus {
-  constructor(options:PrometheusOption){
+  constructor(options?:PrometheusOption){
     this.init(options)
   }
 
   init(options:PrometheusOption){
     this.initUuid()
+    initPv()
   }
 
   initUuid ():void {
@@ -25,3 +26,5 @@ export default class Prometheus {
     localStorage.setItem("prometheus_uuid", uid)
   }
 } 
+
+new Prometheus()

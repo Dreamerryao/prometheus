@@ -4,11 +4,15 @@ import { Pv, StayTime } from "./lib/types";
 import { uuid } from "./lib/uuid";
 
 let _session: Session
-let _history: History
+let _history: UrlHistory
 
 export function initPv(): void {
   _session = new Session()  // 新建会话
-  _history = new History()  // 监听路由
+  _history = new UrlHistory()  // 监听路由
+}
+
+function createSession():void{
+  _session = new Session()
 }
 
 
@@ -49,26 +53,23 @@ function sendStayTime(stayTime: DOMHighResTimeStamp) {
   handleBeforeUnload(task)
 }
 
-interface Listener {
-  (e: Event): void
-}
 
 
 /**
  * 会话，每个页面的会话不一样
  */
 class Session {
-  private timeLimit: number                            // 会话最长保留时间 (min)
-  private sendPvTimer: NodeJS.Timeout | null = null    // 检查页面可见维持 3s 的定时器
-  private visitStartTime: DOMHighResTimeStamp          // 本次会话开始访问页面的时间
-  private visitEndTime: DOMHighResTimeStamp | null = null
-  private readonly sid: string = uuid()                // 会话的唯一标识符，每个页面的会话不同
-  private viewFlag:boolean = false                     // 标识是否浏览过页面
+  private readonly sid: string = uuid()                    // 会话的唯一标识符，每个页面的会话不同
+  private timeLimit: number                                // 会话最长保留时间 (min)
+  private sendPvTimer: NodeJS.Timeout | null = null        // 检查页面可见维持 3s 的定时器
+  private visitStartTime: DOMHighResTimeStamp              // 本次会话开始访问页面的时间
+  private visitEndTime: DOMHighResTimeStamp | null = null  // 本次会话结束访问页面的时间
+  private viewFlag:boolean = false                         // 标识是否浏览过页面
 
-  private readonly handleVisChange: Listener = (e) => {
+  private readonly handleVisChange = ():void => {
     this.handlePageVisibility()
   }
-  private readonly handleBeforeUnload: Listener = (e: BeforeUnloadEvent) => {
+  private readonly handleBeforeUnload = ():void => {
     if (this.sendPvTimer) clearTimeout(this.sendPvTimer)  // 无效 pv
     else sendStayTime(Date.now() - this.visitStartTime)   // 发送 staytime 数据
   }
@@ -155,60 +156,56 @@ class Session {
     document.removeEventListener('visibilitychange', this.handleVisChange)
     window.removeEventListener("beforeunload", this.handleBeforeUnload)
   }
-
 }
 
 
-
-
-class History {
-  private url: string   // 当前页面的 URL
+class UrlHistory {
+  private oldUrl: string = getUrl()   // 当前页面的 URL
   constructor() {
-    this.url = getUrl()
-    this.initURLChangeListener()
+    this.initPopStateListener()
     this.rewritePushState()
   }
 
-  initURLChangeListener(): void {
-    // 监听 hash 更改事件
-    window.addEventListener('hashchange', (e) => {
-      console.log('[HashChange]', e)
-    })
-    // 监听 点击后退，前进按钮 / 调用 history.back() / forward() / go()
+  /**
+   * 初始化 url 改变的监听器
+   */
+  initPopStateListener(): void {
+    // 监听点击浏览器上的 后退、前进 按钮 / 调用 history.back() / forward() / go()
     window.addEventListener('popstate', (e) => {
-      console.log('?', this.url)
+      console.log(this)
       const newUrl = location.href
-      console.log('[popState] newUrl:', newUrl, "oldUrl:", this.url, newUrl === this.url)
-      if (newUrl === this.url) return;
+      console.log('[popState] newUrl:', newUrl, "oldUrl:", this.oldUrl, newUrl === this.oldUrl)
+      if (newUrl === this.oldUrl) return;
 
-      this.url = newUrl
-      _session.startSendPvTimer()
+      this.oldUrl = newUrl
+      createSession()
     })
   }
 
   rewritePushState(): void {
     if (!history.pushState) return
-    const pushState = history.pushState
-    history.pushState = function (data: any, title: string, url?: string | URL): void {
-      if (url === this.url) return
 
-      this.url = (url instanceof URL) ? url.toString() : document.location.origin + '/' + url
-      console.log('[pushState]:', this.url)
-      _session.startSendPvTimer()
-      pushState.apply(this, arguments)
-      console.log(this.url)
+    const _pushState = history.pushState
+    history.pushState = (data: any, title: string, url?: string | URL): void => {
+      if (url === this.oldUrl) return
+
+      this.oldUrl = (url instanceof URL) ? url.toString() : document.location.origin + '/' + url
+      _pushState.call(history, data, title, url)
     }
+  }
 
-    // 覆写 replaceState
-    const replaceState = history.replaceState
-    history.replaceState = function (data: any, title: string, url?: string | URL): void {
-      if (url === this.url) return
+  /**
+   * 覆写 replaceState
+   */
+  rewriteReplaceState(): void {
+    if (!history.replaceState) return
 
-      this.url = (url instanceof URL) ? url.toString() : document.location.origin + '/' + url
-      console.log('[replaceState]:', this.url)
-      _session.startSendPvTimer()
-      replaceState.apply(this, arguments)
-      console.log(this.url)
+    const _replaceState = history.replaceState
+    history.replaceState = (data: any, title: string, url?: string | URL): void => {
+      if (url === this.oldUrl) return
+
+      this.oldUrl = (url instanceof URL) ? url.toString() : document.location.origin + '/' + url
+      _replaceState.call(history, data, title, url)
     }
   }
 
