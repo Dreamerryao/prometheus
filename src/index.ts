@@ -7,16 +7,21 @@
 import {initPv} from './pv'
 import {uuid} from './lib/uuid'
 
+interface PrometheusOption {
 
-// IIFE
-(function init(){
-  initUuid()
-  initPv()
+}
+export default class Prometheus {
+  constructor(options:PrometheusOption){
+    this.init(options)
+  }
 
+  init(options:PrometheusOption){
+    this.initUuid()
+  }
 
-  function initUuid ():void {
+  initUuid ():void {
     if(localStorage.getItem("prometheus_uuid")) return;
     const uid = uuid()
     localStorage.setItem("prometheus_uuid", uid)
   }
-})()
+} 

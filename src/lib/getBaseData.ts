@@ -28,3 +28,8 @@ export function getBaseData() {
   }
 }
 
+export function getUrl(): string {
+  const { origin, pathname } = document.location
+  console.log("url is:", origin + pathname)
+  return origin + pathname
+}

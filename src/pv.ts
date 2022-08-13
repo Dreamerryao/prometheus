@@ -1,21 +1,16 @@
-import { getBaseData } from "./lib/getBaseData";
+import { getBaseData, getUrl } from "./lib/getBaseData";
 import { addTask, handleBeforeUnload } from "./lib/sendBeacon";
 import { Pv, StayTime } from "./lib/types";
+import { uuid } from "./lib/uuid";
 
 let _session: Session
 let _history: History
+
 export function initPv(): void {
-  // 新建会话
-  _session = new Session();
-  // 监听路由
-  _history = new History()
+  _session = new Session()  // 新建会话
+  _history = new History()  // 监听路由
 }
 
-function getUrl(): string {
-  const { origin, pathname } = document.location
-  console.log("url is:", origin + pathname)
-  return origin + pathname
-}
 
 /**
  * 构造并发送 pv 数据
@@ -45,34 +40,53 @@ function sendStayTime(stayTime: DOMHighResTimeStamp) {
 
   const task: StayTime = {
     ...getBaseData(),
+    behaviorType: "staytime",
     type: "behavior",
     pageURL,
-    behaviorType: "staytime",
     stayTime,
     uuid
   }
   handleBeforeUnload(task)
 }
 
+interface Listener {
+  (e: Event): void
+}
 
+
+/**
+ * 会话，每个页面的会话不一样
+ */
 class Session {
-  private timeLimit: number                     // 会话最长保留时间 (min)
-  private sendPvTimer: NodeJS.Timeout | null    // 检查页面可见维持 3s 的定时器
-  private visitStartTime: DOMHighResTimeStamp
+  private timeLimit: number                            // 会话最长保留时间 (min)
+  private sendPvTimer: NodeJS.Timeout | null = null    // 检查页面可见维持 3s 的定时器
+  private visitStartTime: DOMHighResTimeStamp          // 本次会话开始访问页面的时间
+  private visitEndTime: DOMHighResTimeStamp | null = null
+  private readonly sid: string = uuid()                // 会话的唯一标识符，每个页面的会话不同
+  private viewFlag:boolean = false                     // 标识是否浏览过页面
 
-  static instance: Session | null = null        // 单例模式
+  private readonly handleVisChange: Listener = (e) => {
+    this.handlePageVisibility()
+  }
+  private readonly handleBeforeUnload: Listener = (e: BeforeUnloadEvent) => {
+    if (this.sendPvTimer) clearTimeout(this.sendPvTimer)  // 无效 pv
+    else sendStayTime(Date.now() - this.visitStartTime)   // 发送 staytime 数据
+  }
 
   constructor(timeLimit: number = 30) {
-    if (!Session.instance) {
-      this.timeLimit = timeLimit
-      this.visitStartTime = Date.now()
-      this.sendPvTimer = null
-      this.handlePageVisibility()
-      this.initListener()
+    this.timeLimit = timeLimit
+    this.handlePageVisibility()
+    this.initListener()
 
-      Session.instance = this
-    }
-    else return Session.instance
+    sessionStorage.setItem('prometheus_sid', this.sid)
+  }
+
+  /**
+   * 初始化 页面可见性 的监听器
+   */
+  initListener(): void {
+    document.addEventListener('visibilitychange', this.handleVisChange)
+    window.addEventListener("beforeunload", this.handleBeforeUnload)
   }
 
   /**
@@ -80,25 +94,37 @@ class Session {
    * 在页面首次打开时，即初始化实例时也执行一次。
    */
   handlePageVisibility(): void {
-    // 如果 sessionStorage 中包含有 "session_key"，说明有至少一次有效 Pv。
-    // 1. 首次打开页面（在后台），则不作处理
-    if (!sessionStorage.getItem('session_key') && document.hidden) return
-
-    // 2. [if]   至少一次有效 Pv 后页面隐藏，刷新会话 以及 清除发送数据的定时器
-    // 3. [else] 首次打开页面（在前台），准备发送数据
-    //           至少一次有效 Pv 后再次打开页面 且会话过期，准备发送数据
     if (document.hidden) {
-      this.refreshSession()
+      // 1. 首次打开页面（在后台）：不作处理
+      if(!this.viewFlag) return
+
+      // 2. 已浏览过页面后，页面隐藏：
+      // 刷新会话结束时间，记录浏览结束时间 以及 清除发送数据的定时器
       clearTimeout(this.sendPvTimer)
-    } else if (this.isExpired()) {
+      this.refreshSession()
+      this.visitEndTime = Date.now()
+
+    } else {
+      // 3.已浏览过页面后，页面再次可见且会话未过期：不作处理
+      if(this.viewFlag && !this.isExpired()) return
+
+      // 4.首次打开页面（在前台），准备发送数据
+      if(!this.viewFlag) this.viewFlag = true 
+
+      // 5.已浏览过页面后，页面再次可见且会话过期：补上前次的 stayTime 数据。
+      if(this.visitEndTime) sendStayTime(this.visitEndTime - this.visitStartTime)
+
       this.visitStartTime = Date.now()
       this.startSendPvTimer()
     }
   }
 
+  /**
+   * 设置一个定时器。
+   * 如果定时器到期页面仍然可见，没有关闭页面，也没有隐藏。
+   * 则算作一次有效 pv
+   */
   startSendPvTimer(): void {
-    // 如果定时器到期页面仍然可见，没有关闭页面，也没有隐藏
-    // 则算作一次有效 pv
     clearTimeout(this.sendPvTimer)
     this.sendPvTimer = setTimeout(() => {
       sendPv()
@@ -106,47 +132,38 @@ class Session {
   }
 
   /**
-   * 初始化 页面可见性 的监听器
-   */
-  initListener(): void {
-    document.addEventListener('visibilitychange', (e: Event): void => {
-      this.handlePageVisibility()
-    })
-    window.addEventListener("beforeunload", (e: BeforeUnloadEvent): void => {
-      if (this.sendPvTimer) clearTimeout(this.sendPvTimer)
-      else sendStayTime(Date.now() - this.visitStartTime)
-    })
-  }
-
-  /**
    * 检查会话是否已过期
    * @returns true:已过期 false:未过期
    */
   isExpired(): boolean {
-    if (!sessionStorage.getItem('session_key')) {
-      const newTime = `${new Date(0).getTime()}`
-      sessionStorage.setItem('session_key', newTime)
-    }
-    console.log(Date.now(), "<>", sessionStorage.getItem('session_key'))
-    return +sessionStorage.getItem('session_key') < Date.now()
+    return +sessionStorage.getItem(this.sid) < Date.now()
   }
 
   /**
-   * 离开页面时刷新会话时间
+   * 页面不可见时刷新会话时间
    */
   refreshSession(): void {
     const newTime = `${Date.now() + this.timeLimit * 1000 * 60}`
-    sessionStorage.setItem('session_key', newTime)
+    sessionStorage.setItem(this.sid, newTime)
   }
+
+  /**
+   * 会话结束时销毁实例
+   */
+  destroySession(): void {
+    localStorage.removeItem(this.sid)
+    document.removeEventListener('visibilitychange', this.handleVisChange)
+    window.removeEventListener("beforeunload", this.handleBeforeUnload)
+  }
+
 }
 
 
 
 
 class History {
-  private url: string
+  private url: string   // 当前页面的 URL
   constructor() {
-    console.log('?')
     this.url = getUrl()
     this.initURLChangeListener()
     this.rewritePushState()

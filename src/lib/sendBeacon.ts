@@ -8,19 +8,21 @@ const hasRequestIdleCallback = ('requestIdleCallback' in window)
  * @param data 监控数据
  */
 function send(data: TrackData[] | TrackData): void {
-  // 都转换为数组
-  const datas = new Array(data)
+  // 将数据全部处理成数组
+  const datas = (data instanceof Array)? data : new Array(data)  
   console.log("sendBeacon", datas)
-  // const url = baseURL + data.type;
-  const url = "http://localhost:8082/sendBeacon"
+
+  // navigator.sendBeacon 可用
   if (navigator && navigator.sendBeacon) {
-    // navigator.sendBeacon 可用
-    datas.forEach((data) => {
-      const beacon: BodyInit = JSON.stringify(data)
+    datas.forEach((data:TrackData) => {
+      const url = baseURL + data.type;
+      const beacon = JSON.stringify(data)
       navigator.sendBeacon(url, beacon)
     })
   } else {
-    // polyfill
+    // img 打点
+    // const img = document.createElement('img')
+    // img.src = ''
   }
 }
 
@@ -45,6 +47,7 @@ function tick(deadline: Deadline) {
   (window as any).requestIdleCallback(tick, { timeout: 500 })
 }
 
+
 /**
  * 向任务队列中添加任务
  */
@@ -53,6 +56,11 @@ export function addTask(task: TrackData) {
   taskQueue.push(task)
 }
 
+/**
+ * beforeUnload 事件触发时执行，
+ * 发送队列中未发送的数据，以及用户停留时长的数据
+ * @param stayTimeData 用户停留时长的数据
+ */
 export function handleBeforeUnload(stayTimeData: StayTime) {
   send([...taskQueue, stayTimeData])
 }

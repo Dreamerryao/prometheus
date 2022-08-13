@@ -1,6 +1,6 @@
 /**
  * 获取一个随机字符串
- * @returns 
+ * @returns uuid
  */
 export function uuid():string{
   const date = new Date()
