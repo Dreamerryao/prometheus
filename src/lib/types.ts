@@ -23,7 +23,7 @@ export interface ErrorImpl extends TrackDataBase {
 /**
  * JSError JS内部错误（包括 Promise 错误）
  */
-interface JSError extends ErrorImpl {
+export interface JSError extends ErrorImpl {
   errorType: "jsError";      // 错误类型
   message: string;           // 错误详情
   stack: string;             // 堆栈信息
@@ -32,7 +32,7 @@ interface JSError extends ErrorImpl {
 /**
  * ResouceError 资源加载错误
  */
-interface ResourceError extends ErrorImpl {
+export interface ResourceError extends ErrorImpl {
   errorType: "resouceError";
   filename: string;
   errorMessage: string;
@@ -80,12 +80,12 @@ export interface PerformanceImpl extends TrackDataBase {
   type: "performance";
 }
 
-interface Timing extends PerformanceImpl {
+export interface Timing extends PerformanceImpl {
   perfType: "timing";
   dnsTime: DOMHighResTimeStamp;
 }
 
-interface Paint extends PerformanceImpl {
+export interface Paint extends PerformanceImpl {
   prefType: "paint";
   firstPaint: DOMHighResTimeStamp;                  // FP
   firstContentPaint: DOMHighResTimeStamp;           // FCP

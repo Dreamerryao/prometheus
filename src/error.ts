@@ -1,5 +1,5 @@
 import { getBaseData } from "./lib/getBaseData";
-import { send } from "./lib/sendBeacon";
+import { addTask } from "./lib/sendBeacon";
 import { JSError,ResourceError } from "./lib/types";
 
 /**
@@ -18,11 +18,11 @@ export function error():void {
                 filename: target.src || target.href,
                 errorMessage: ev.message,
                 tagName: target.tagName,
-                //size:,
                 time: ev.timeStamp,
+                size: 0
             }
             console.log("sendResouceError", data)
-            send(data);
+            addTask(data);
         } else { //否则为jsError
             console.log(ev);
             const data: JSError = {
@@ -33,7 +33,7 @@ export function error():void {
                 stack: ev.error.stack,
             }
             console.log("sendJsError", data)
-            send(data);
+            addTask(data);
         }
     },true);
     // 还有promiseError
@@ -48,7 +48,7 @@ export function error():void {
             stack: reason.stack,
         }
         console.log("sendJsError", data)
-            send(data);
+        addTask(data);
     })
 }
 
