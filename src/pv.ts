@@ -12,6 +12,7 @@ export function initPv(): void {
 }
 
 function createSession():void{
+  _session.destroySession()
   _session = new Session()
 }
 
@@ -52,8 +53,6 @@ function sendStayTime(stayTime: DOMHighResTimeStamp) {
   }
   handleBeforeUnload(task)
 }
-
-
 
 /**
  * 会话，每个页面的会话不一样
@@ -158,12 +157,15 @@ class Session {
   }
 }
 
-
+/**
+ * 监听 url 改变，在 url 变化时重新创建会话
+ */
 class UrlHistory {
   private oldUrl: string = getUrl()   // 当前页面的 URL
   constructor() {
     this.initPopStateListener()
     this.rewritePushState()
+    this.rewriteReplaceState()
   }
 
   /**
@@ -182,6 +184,9 @@ class UrlHistory {
     })
   }
 
+  /**
+   * 覆写 history.pushState
+   */
   rewritePushState(): void {
     if (!history.pushState) return
 
@@ -191,11 +196,12 @@ class UrlHistory {
 
       this.oldUrl = (url instanceof URL) ? url.toString() : document.location.origin + '/' + url
       _pushState.call(history, data, title, url)
+      createSession()
     }
   }
 
   /**
-   * 覆写 replaceState
+   * 覆写 history.replaceState
    */
   rewriteReplaceState(): void {
     if (!history.replaceState) return
@@ -206,9 +212,8 @@ class UrlHistory {
 
       this.oldUrl = (url instanceof URL) ? url.toString() : document.location.origin + '/' + url
       _replaceState.call(history, data, title, url)
+      createSession()
     }
   }
-
-
 }
 
