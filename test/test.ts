@@ -19,17 +19,18 @@ export class HistoryRouter {
 
   updateView(url:string):void {
     this.currentUrl = url;
-    console.log(this.routes[this.currentUrl])
     this.routes[this.currentUrl] && this.routes[this.currentUrl]()
   }
   bindLink(){
     const allLink = Array.from(document.querySelectorAll('a[data-href]'))
     allLink.forEach((l) => {
-      console.log(l)
       l.addEventListener('click', e => {
         e.preventDefault()
         const url = l.getAttribute('data-href')
-        history.pushState({}, null, url)
+        const mode = l.getAttribute('data-mode')
+        if(mode === 'push') history.pushState({}, null, url)
+        else history.replaceState({}, null, url)
+
         this.updateView(url)
       }, false)
     })
@@ -39,9 +40,10 @@ export class HistoryRouter {
   init() {
     this.bindLink()
     window.addEventListener('popstate', e => {
-      this.updateView(window.location.pathname)
+      console.log(window.location.pathname)
+      this.updateView(window.location.pathname.slice(1))
     })
-    window.addEventListener('load',() => this.updateView('/'), false)
+    window.addEventListener('load',() => this.updateView(''), false)
   }
 }
 
@@ -77,14 +79,12 @@ const home:routeCallback = function() {
   routeContainer.innerHTML = `<div>home!!!</div>`
 }
 const anotherTestPage:routeCallback = function() {
-  console.log('?')
   routeContainer.innerHTML = `<div>anotherTestPage!!!!!!</div>`  
 }
 const gogogo:routeCallback = function() {
-  console.log('?')
   routeContainer.innerHTML = `<div>gogogo!!!!!!</div>`  
 }
 
-historyRouter.route('anthoerTestPage', anotherTestPage)
+historyRouter.route('anotherTestPage', anotherTestPage)
 historyRouter.route('gogogo', gogogo)
-historyRouter.route('/', home)
+historyRouter.route('', home)

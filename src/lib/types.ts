@@ -64,7 +64,7 @@ export interface HttpRequest extends TrackDataBase {
   method: "get" | "post" | ""; // todo
   pathUrl: string;                // 路径
   success: boolean;               // 是否成功
-  status: number;                 // 状态码
+  status: string;                 // 状态码
   duration: DOMHighResTimeStamp;  // 持续时间
   requestHeader:string;           // 请求头
   requestBody: string;            // 请求体
@@ -108,7 +108,7 @@ export interface Pv extends BehaviorImpl {
   behaviorType:"pv";
 }
 
-interface StayTime extends BehaviorImpl {
+export interface StayTime extends BehaviorImpl {
   behaviorType: "staytime";
   stayTime: DOMHighResTimeStamp;
 }
@@ -134,13 +134,67 @@ export type Deadline = {
   didTimeout: boolean // 是否超时
 }
 
-// FIXME:看看要不要删掉！
 /**
- * 正则匹配函数类型
+ * detectUserAgent 使用到的类型
  */
-export interface RegExpTester {
-  (pattern: RegExp): boolean
-}
-export interface RegExpMatcher {
-  (pattern: RegExp): string
+export type Browser =
+  | 'welike'
+  | 'vidmate'
+  | 'aol'
+  | 'edge'
+  | 'yandexbrowser'
+  | 'vivaldi'
+  | 'kakaotalk'
+  | 'samsung'
+  | 'chrome'
+  | 'phantomjs'
+  | 'crios'
+  | 'firefox'
+  | 'fxios'
+  | 'opera'
+  | 'ie'
+  | 'bb10'
+  | 'android'
+  | 'ios'
+  | 'safari'
+  | 'facebook'
+  | 'instagram'
+  | 'ios-webview'
+  | 'searchbot'
+
+export type OperatingSystem =
+  | 'iOS'
+  | 'Android OS'
+  | 'BlackBerry OS'
+  | 'Windows Mobile'
+  | 'Amazon OS'
+  | 'Windows 3.11'
+  | 'Windows 95'
+  | 'Windows 98'
+  | 'Windows 2000'
+  | 'Windows XP'
+  | 'Windows Server 2003'
+  | 'Windows Vista'
+  | 'Windows 7'
+  | 'Windows 8'
+  | 'Windows 8.1'
+  | 'Windows 10'
+  | 'Windows ME'
+  | 'Open BSD'
+  | 'Sun OS'
+  | 'Linux'
+  | 'Mac OS'
+  | 'QNX'
+  | 'BeOS'
+  | 'OS/2'
+  | 'Search Bot';
+
+export type UserAgentRule = [Browser, RegExp]
+export type UserAgentMatch = [Browser, RegExpExecArray] | false;
+export type OperatingSystemRule = [OperatingSystem, RegExp];
+
+export interface DetectedInfo<N extends string, O, V = null> {
+  readonly name: N
+  readonly version: V
+  readonly os: O
 }

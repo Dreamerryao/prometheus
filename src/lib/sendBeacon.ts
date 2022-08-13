@@ -1,4 +1,4 @@
-import {TrackData, Deadline} from './types.js'
+import { TrackData, Deadline, StayTime } from './types.js'
 
 const baseURL = "/v1/api/upload/"
 const hasRequestIdleCallback = ('requestIdleCallback' in window)
@@ -7,14 +7,18 @@ const hasRequestIdleCallback = ('requestIdleCallback' in window)
  * 发送监控数据至服务端
  * @param data 监控数据
  */
-function send(data: TrackData):void {
-  console.log("sendBeacon", data)
-  const url = baseURL + data.type;
-
-  if(navigator && navigator.sendBeacon) {
+function send(data: TrackData[] | TrackData): void {
+  // 都转换为数组
+  const datas = new Array(data)
+  console.log("sendBeacon", datas)
+  // const url = baseURL + data.type;
+  const url = "http://localhost:8082/sendBeacon"
+  if (navigator && navigator.sendBeacon) {
     // navigator.sendBeacon 可用
-    const beacon: BodyInit = JSON.stringify(data)
-    navigator.sendBeacon(url, beacon)
+    datas.forEach((data) => {
+      const beacon: BodyInit = JSON.stringify(data)
+      navigator.sendBeacon(url, beacon)
+    })
   } else {
     // polyfill
   }
@@ -22,13 +26,13 @@ function send(data: TrackData):void {
 
 
 // 任务队列
-const taskQueue:Array<TrackData> = new Array();
+const taskQueue: Array<TrackData> = new Array();
 
 /**
  * 每一帧执行一次的函数
  * @param deadline 自动传入回调函数的参数，表示帧的剩余空闲时间
  */
-function tick(deadline:Deadline) {
+function tick(deadline: Deadline) {
   const remaining = deadline.timeRemaining()
 
   // 如果还有剩余执行时间，且任务队列不为空，则发送任务队列中的任务
@@ -44,10 +48,15 @@ function tick(deadline:Deadline) {
 /**
  * 向任务队列中添加任务
  */
- export function addTask(task:TrackData){
+export function addTask(task: TrackData) {
   console.log("addTask", task)
   taskQueue.push(task)
 }
+
+export function handleBeforeUnload(stayTimeData: StayTime) {
+  send([...taskQueue, stayTimeData])
+}
+
 
 // TODO:window.requestIdleCallback 会报错！但是 requestAnimationFrame 不会
 // requestIdleCallback 的类型定义好像被 @deprecated 注解了

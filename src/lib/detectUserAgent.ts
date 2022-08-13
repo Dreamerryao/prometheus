@@ -1,65 +1,12 @@
-type Browser =
-  | 'welike'
-  | 'vidmate'
-  | 'aol'
-  | 'edge'
-  | 'yandexbrowser'
-  | 'vivaldi'
-  | 'kakaotalk'
-  | 'samsung'
-  | 'chrome'
-  | 'phantomjs'
-  | 'crios'
-  | 'firefox'
-  | 'fxios'
-  | 'opera'
-  | 'ie'
-  | 'bb10'
-  | 'android'
-  | 'ios'
-  | 'safari'
-  | 'facebook'
-  | 'instagram'
-  | 'ios-webview'
-  | 'searchbot'
+import {DetectedInfo, Browser, OperatingSystem, 
+  UserAgentMatch, UserAgentRule, OperatingSystemRule} from './types'
 
-type OperatingSystem =
-  | 'iOS'
-  | 'Android OS'
-  | 'BlackBerry OS'
-  | 'Windows Mobile'
-  | 'Amazon OS'
-  | 'Windows 3.11'
-  | 'Windows 95'
-  | 'Windows 98'
-  | 'Windows 2000'
-  | 'Windows XP'
-  | 'Windows Server 2003'
-  | 'Windows Vista'
-  | 'Windows 7'
-  | 'Windows 8'
-  | 'Windows 8.1'
-  | 'Windows 10'
-  | 'Windows ME'
-  | 'Open BSD'
-  | 'Sun OS'
-  | 'Linux'
-  | 'Mac OS'
-  | 'QNX'
-  | 'BeOS'
-  | 'OS/2'
-  | 'Search Bot';
+// detectUserAgent 
+// https://github.com/WarrenJones/nemetric/blob/master/src/detect-browser.ts
 
-type UserAgentRule = [Browser, RegExp]
-type UserAgentMatch = [Browser, RegExpExecArray] | false;
-type OperatingSystemRule = [OperatingSystem, RegExp];
-
-interface DetectedInfo<N extends string, O, V = null> {
-  readonly name: N
-  readonly version: V
-  readonly os: O
-}
-
+/**
+ * 浏览器信息
+ */
 class BrowserInfo implements DetectedInfo<Browser, OperatingSystem | null, string>{
   constructor(
     public readonly name:Browser,
@@ -71,6 +18,9 @@ class BrowserInfo implements DetectedInfo<Browser, OperatingSystem | null, strin
   }
 } 
 
+/**
+ * Node.js 信息
+ */
 class NodeInfo implements DetectedInfo<'node', NodeJS.Platform, string> {
   public readonly name: 'node' = 'node'
   public readonly os: NodeJS.Platform = process.platform
@@ -81,6 +31,9 @@ class NodeInfo implements DetectedInfo<'node', NodeJS.Platform, string> {
   }
 }
 
+/**
+ * SEO 爬虫机器人
+ */
 class BotInfo implements DetectedInfo<'bot', null, null> {
   public readonly bot:true = true
   public readonly name: 'bot' = 'bot'
@@ -91,8 +44,6 @@ class BotInfo implements DetectedInfo<'bot', null, null> {
     return `${this.name}` 
   }
 }
-
-
 
 const SEARCHBOX_UA_REGEX = /alexa|bot|crawl(er|ing)|facebookexternalhit|feedburner|google web preview|nagios|postrank|pingdom|slurp|spider|yahoo!|yandex/
 const SEARCHBOT_OS_REGEX = /(nuhk)|(Googlebot)|(Yammybot)|(Openbot)|(Slurp)|(MSNBot)|(Ask Jeeves\/Teoma)|(ia_archiver)/
@@ -197,60 +148,6 @@ function getNodeVersion():NodeInfo | null {
   return isNode? new NodeInfo(process.version.slice(1)) : null
 }
 /*
-type desktopSys = 'windows' | 'macos' | 'linux'
-type mobileSys = 'andriod' | 'ios'
-type SystemType = typeof desktopSys |  typeof mobileSys
-const systemMap:Map<RegExp, SystemType> = new Map([
-  [/windows|win32|win64|wow32|wow64/g, "windows"],
-  [/macintosh|macintel/g, "macos"],
-  [/x11/g, "linux"],
-  [/android|adr/g, "android"],
-  [/ios|iphone|ipad|ipod|iwatch/g, "ios"]
-])
-
-// TODO:WIN11 探测
-const winVerMap = new Map([
-  [/windows nt 5.0|windows 2000/g, "2000"],
-  [/windows nt 5.1|windows xp/g, "xp"],
-  [/windows nt 5.2|windows 2003/g, "2003"],
-  [/windows nt 6.0|windows vista/g, "vista"],
-  [/windows nt 6.1|windows 7/g, "7"],
-  [/windows nt 6.2|windows 8/g, "8"],
-  [/windows nt 6.3|windows 8.1/g, "8.1"],
-  [/windows nt 10.0|windows 10/g, "10"]
-])
-
-function getUserAgent(): string {
-  const ua = navigator.userAgent.toLowerCase()
-  const testUa: RegExpTester = regexp => {
-    regexp.test(ua)
-  }
-  const getVer: RegExpMatcher = regexp => ua.match(regexp).toString().replace(/[^0-9|_.]/g, "").replace(/_/g, ".")
-
-  // 系统
-  let system: string = "unknow"
-
-
-  // 系统版本
-  let systemVer: string = "unknow"
-  if (system === "windows") {
-    
-  } else if (system === "macos") {
-    systemVer = getVer(/os x [\d._]+/g)
-  } else if (system === "android") {
-    systemVer = getVer(/android [\d._]+/g)
-  } else if (system === "ios") {
-    systemVer = getVer(/os [\d._]+/g)
-  }
-
-  // 平台
-  let platform: string = "unknow"
-  if (system === "windows" || system === "macos" || system === "linux") {
-    platform = "desktop"     // 桌面端
-  } else if (system === "android" || system === "ios" || testUa(/mobile/g)) {
-    platform = "mobile"      // 移动端
-  }
-
   // 内核 + 载体
   let engine: string = "unknow"
   let supporter = "unknow"
@@ -304,6 +201,8 @@ function getUserAgent(): string {
     supporterVer = getVer(/edge\/[\d._]+/g)
   }
 
+
+[/MicroMessenger/]
   // 外壳 + 外壳版本
   let shell: string = "none"
   let shellVer: string = "unknow"
@@ -332,4 +231,5 @@ function getUserAgent(): string {
 
   return (`${engine} ${engineVer} ${platform} ${supporter} ${supporterVer} ${system} ${systemVer} ${(shell === "none") ? '' : shell + shellVer}`)
 }
+
 */
