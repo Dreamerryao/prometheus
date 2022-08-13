@@ -3,14 +3,21 @@ import { addTask, handleBeforeUnload } from "./lib/sendBeacon";
 import { Pv, StayTime } from "./lib/types";
 import { uuid } from "./lib/uuid";
 
-let _session: Session
-let _history: UrlHistory
+let _session: Session         // 当前页面的会话实例
+let _history: UrlHistory      // 当前标签页的 url 监控实例
 
+/**
+ * 初始化 pv 模块
+ */
 export function initPv(): void {
   _session = new Session()  // 新建会话
   _history = new UrlHistory()  // 监听路由
 }
 
+/**
+ * 创建新的 Session 实例
+ * 同时销毁之前的实例 
+ */
 function createSession():void{
   _session.destroySession()
   _session = new Session()
@@ -162,7 +169,12 @@ class Session {
  */
 class UrlHistory {
   private oldUrl: string = getUrl()   // 当前页面的 URL
+  static instance:UrlHistory
+
   constructor() {
+    if(UrlHistory.instance) return UrlHistory.instance
+
+    UrlHistory.instance = this
     this.initPopStateListener()
     this.rewritePushState()
     this.rewriteReplaceState()
