@@ -1,7 +1,7 @@
 {
-  "name": "prometheus-demo",
+  "name": "prometheus",
   "version": "1.0.0",
-  "description": "Bytedance 2022 青训营 - 前端监控系统 - demo页面",
+  "description": "Bytedance 2022 青训营 - 前端监控系统 - sdk",
   "private": true,
   "directories": {
     "test": "test"
@@ -19,9 +19,9 @@
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Dreamerryao/prometheus-demo/issues"
+    "url": "https://github.com/Dreamerryao/prometheus/issues"
   },
-  "homepage": "https://github.com/Dreamerryao/prometheus-demo#readme",
+  "homepage": "https://github.com/Dreamerryao/prometheus#readme",
   "devDependencies": {
     "@babel/core": "^7.18.10",
     "@babel/preset-env": "^7.18.10",
