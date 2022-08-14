@@ -1,5 +1,29 @@
-function rewriteXHR(): any {
-    // xhr hook
+import { getBaseData, getUrl } from "./lib/getBaseData";
+import { addTask, } from "./lib/sendBeacon";
+import { HttpRequest } from "./lib/types";
+
+function sendHttpRequest(apiType:"xhr"|"fetch",res){
+    const task: HttpRequest = {
+        ...getBaseData(),
+        type: "api",
+        apiType: apiType,
+        method: res.method,
+        pathUrl: res.pathUrl,
+        success: res.success,
+        status: res.status,
+        duration: res.duration,
+        requestHeader: res.requestHeader,
+        requestBody: res.requestBody,
+        responseHeader: res.responseHeader,
+        responseBody: res.responseBody
+      }
+    
+      console.log("sendHttpRequest", task)
+      addTask(task)
+}
+
+function rewriteXHR(cb:(para1,para2)=>void): any {
+    //xhr hook
     let xhr: any = window.XMLHttpRequest
     if (xhr._myxhr_flag === true) {
         return void 0
@@ -7,24 +31,20 @@ function rewriteXHR(): any {
     xhr._myxhr_flag = true
 
     let _originOpen = xhr.prototype.open
-    xhr.prototype.open = function (method: string, url: string, async: boolean, user: string, password: string) {
-        // TODO myxhr url check
-        console.log("OPEN!!")
+    xhr.prototype.open = function (method: string, url: string | URL, async?: boolean, user?: string, password?: string) {
         this._myxhr_xhr_info = {
-            url: url,
+            type:"api",
+            apiType: "xhr",
+            pathUrl: url,
             method: method,
             status: null
         }
-
-        /*** cb(this._myxhr_xhr_info) ***/
-        console.log(this._myxhr_xhr_info)
 
         return _originOpen.apply(this, arguments)
     }
 
     let _originSend = xhr.prototype.send
     xhr.prototype.send = function (value: any) {
-        console.log("SEND!!")
         let _self = this
         this._myxhr_start_time = Date.now()
 
@@ -59,13 +79,18 @@ function rewriteXHR(): any {
                 _self._myxhr_xhr_info.responseSize = responseSize
                 _self._myxhr_xhr_info.requestSize = value ? value.length : 0
                 _self._myxhr_xhr_info.type = 'xhr'
-                
-                /*** cb(this._myxhr_xhr_info) ***/
-                console.log(this._myxhr_xhr_info)
+
+                _self._myxhr_xhr_info.responseHeader = _self.getAllResponseHeaders()
+                _self._myxhr_xhr_info.responseBody = self.Response
+                //TODO: 请求头和请求体取不到
+                _self._myxhr_xhr_info.requestHeader = ""
+                _self._myxhr_xhr_info.requestBody = ""
+
+                cb("xhr",this._myxhr_xhr_info)
+                //console.log(this._myxhr_xhr_info)
             }
         }
 
-        // TODO myxhr url check
         this.addEventListener('load', ajaxEnd('load'), false)
         this.addEventListener('error', ajaxEnd('error'), false)
         this.addEventListener('abort', ajaxEnd('abort'), false)
@@ -74,12 +99,11 @@ function rewriteXHR(): any {
     }
 }
 
-function rewriteFetch() {
+function rewriteFetch(cb:(para1,para2)=>void) {
     // fetch hook
     if (window.fetch) {
         let _origin_fetch = window.fetch
         window.fetch = function () {
-            console.log("FETCH!!")
             let startTime = Date.now()
             let args = [].slice.call(arguments)
 
@@ -102,19 +126,25 @@ function rewriteFetch() {
                 method = args[1].method
             }
 
-            // TODO eagle check
             let fetchData: any = {
+                type:"api",
+                apiType: "fetch",
                 method: method,
-                url: url,
+                pathUrl: url,
                 status: null
             }
 
             return _origin_fetch.apply(this, args).then(function (response: any) {
                 fetchData.status = response.status
-                fetchData.type = 'fetch'
                 fetchData.duration = Date.now() - startTime
-                //cb(fetchData)
-                console.log(fetchData)
+                fetchData.success = response.ok
+                fetchData.responseHeader = response.headers 
+                //TODO: fetchData.responseBody = response.body  // response.body是一个流
+
+                //TODO: 请求头和请求体取不到
+
+                cb("fetch",fetchData)
+                //console.log(fetchData)
                 return response
             })
         }
@@ -122,7 +152,7 @@ function rewriteFetch() {
 }
 
 export function httpMonitor() {
-    rewriteXHR()
-    rewriteFetch()
+    rewriteXHR(sendHttpRequest)
+    rewriteFetch(sendHttpRequest)
 }
 

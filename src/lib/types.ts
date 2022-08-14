@@ -83,6 +83,13 @@ export interface PerformanceImpl extends TrackDataBase {
 export interface Timing extends PerformanceImpl {
   perfType: "timing";
   dnsTime: DOMHighResTimeStamp;
+  connectTime:DOMHighResTimeStamp;
+  ttfbTime:DOMHighResTimeStamp;
+  responseTime:DOMHighResTimeStamp;
+  parseDOMTime:DOMHighResTimeStamp;
+  domContentLoadedTime:DOMHighResTimeStamp;
+  timeToInteractive:DOMHighResTimeStamp;
+  loadTime:DOMHighResTimeStamp;
 }
 
 export interface Paint extends PerformanceImpl {
