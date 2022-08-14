@@ -9,7 +9,7 @@ let _history: UrlHistory      // 当前标签页的 url 监控实例
 /**
  * 初始化 pv 模块
  */
-export function initPv(): void {
+export function pv(): void {
   _session = new Session()  // 新建会话
   _history = new UrlHistory()  // 监听路由
 }
