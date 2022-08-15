@@ -1,6 +1,8 @@
 {
   "name": "prometheus",
   "version": "1.0.0",
+  "main": "./dist/index.js",
+  "types": "./types/index.d.ts",
   "description": "Bytedance 2022 青训营 - 前端监控系统 - sdk",
   "private": true,
   "directories": {
@@ -8,7 +10,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack",
+    "build": "tsc && webpack",
     "start": "webpack serve --open chrome.exe",
     "dev": "webpack-dev-server"
   },
@@ -25,7 +27,10 @@
   "devDependencies": {
     "@babel/core": "^7.18.10",
     "@babel/preset-env": "^7.18.10",
+    "@babel/preset-typescript": "^7.18.6",
     "babel-loader": "^8.2.5",
+    "babel-preset-es2015": "^6.24.1",
+    "clean-webpack-plugin": "^4.0.0",
     "core-js": "^3.24.1",
     "html-webpack-plugin": "^5.5.0",
     "source-map-loader": "^4.0.0",

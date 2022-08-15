@@ -2,7 +2,7 @@ import { getBaseData, getUrl } from "./lib/getBaseData";
 import { addTask, } from "./lib/sendBeacon";
 import { HttpRequest } from "./lib/types";
 
-function sendHttpRequest(apiType:"xhr"|"fetch",res){
+function sendHttpRequest(apiType:"xhr"|"fetch",res: any){
     const task: HttpRequest = {
         ...getBaseData(),
         type: "api",
@@ -22,7 +22,7 @@ function sendHttpRequest(apiType:"xhr"|"fetch",res){
       addTask(task)
 }
 
-function rewriteXHR(cb:(para1,para2)=>void): any {
+function rewriteXHR(cb:(para1: any,para2: any)=>void): any {
     //xhr hook
     let xhr: any = window.XMLHttpRequest
     if (xhr._myxhr_flag === true) {
@@ -99,7 +99,7 @@ function rewriteXHR(cb:(para1,para2)=>void): any {
     }
 }
 
-function rewriteFetch(cb:(para1,para2)=>void) {
+function rewriteFetch(cb:(para1: any,para2: any)=>void) {
     // fetch hook
     if (window.fetch) {
         let _origin_fetch = window.fetch
