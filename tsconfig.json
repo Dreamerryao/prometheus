@@ -8,6 +8,6 @@
     "lib":["dom","DOM.Iterable","ESNext"],
     "emitDeclarationOnly": true,
     "declaration": true,
-    "declarationDir":"types"
+    "declarationDir":"./dist/types"
   }
 }
