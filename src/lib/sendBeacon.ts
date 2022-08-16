@@ -1,6 +1,6 @@
 import { TrackData, Deadline, StayTime } from './types.js'
 
-const baseURL = "/v1/api/upload/"
+const baseURL = "http://120.55.12.109:8080/v1/api/upload/"
 const hasRequestIdleCallback = ('requestIdleCallback' in window)
 
 /**
