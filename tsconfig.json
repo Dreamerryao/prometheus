@@ -9,5 +9,9 @@
     "emitDeclarationOnly": true,
     "declaration": true,
     "declarationDir":"./dist/types"
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "test"
+  ]
 }
