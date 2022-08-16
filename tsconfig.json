@@ -4,6 +4,10 @@
     "sourceMap": true,
     "noImplicitAny": true,
     "module":"ES6",
-    "target":"ES5",
+    "target":"ES6",
+    "lib":["dom","DOM.Iterable","ESNext"],
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "declarationDir":"./dist/types"
   }
 }

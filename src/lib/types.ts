@@ -4,12 +4,12 @@
 
 
  interface TrackDataBase {
-  title: string;       // 页面标题
-  url: string;         // 页面 url
+  title: string;                    // 页面标题
+  url: string;                      // 页面 url
   timestamp: DOMHighResTimeStamp;   // 时间戳
-  referrer: string;
-  navigationType: string;
-  userAgent: string;
+  referrer: string;                 // 来源 url
+  // navigationType: string;           // 跳转类型
+  userAgent: string;                // 用户代理
 }
 
 
@@ -23,8 +23,8 @@ export interface ErrorImpl extends TrackDataBase {
 /**
  * JSError JS内部错误（包括 Promise 错误）
  */
-interface JSError extends ErrorImpl {
-  errorType: "jsError";     // 错误类型
+export interface JSError extends ErrorImpl {
+  errorType: "jsError";      // 错误类型
   message: string;           // 错误详情
   stack: string;             // 堆栈信息
 }
@@ -32,7 +32,7 @@ interface JSError extends ErrorImpl {
 /**
  * ResouceError 资源加载错误
  */
-interface ResourceError extends ErrorImpl {
+export interface ResourceError extends ErrorImpl {
   errorType: "resouceError";
   filename: string;
   errorMessage: string;
@@ -62,9 +62,9 @@ export interface HttpRequest extends TrackDataBase {
   type: "api";
   apiType: "xhr" | "fetch";       // 请求类型
   method: "get" | "post" | ""; // todo
-  pathUrl: number;                // 路径
+  pathUrl: string;                // 路径
   success: boolean;               // 是否成功
-  status: number;                 // 状态码
+  status: string;                 // 状态码
   duration: DOMHighResTimeStamp;  // 持续时间
   requestHeader:string;           // 请求头
   requestBody: string;            // 请求体
@@ -80,12 +80,19 @@ export interface PerformanceImpl extends TrackDataBase {
   type: "performance";
 }
 
-interface Timing extends PerformanceImpl {
+export interface Timing extends PerformanceImpl {
   perfType: "timing";
   dnsTime: DOMHighResTimeStamp;
+  connectTime:DOMHighResTimeStamp;
+  ttfbTime:DOMHighResTimeStamp;
+  responseTime:DOMHighResTimeStamp;
+  parseDOMTime:DOMHighResTimeStamp;
+  domContentLoadedTime:DOMHighResTimeStamp;
+  timeToInteractive:DOMHighResTimeStamp;
+  loadTime:DOMHighResTimeStamp;
 }
 
-interface Paint extends PerformanceImpl {
+export interface Paint extends PerformanceImpl {
   prefType: "paint";
   firstPaint: DOMHighResTimeStamp;                  // FP
   firstContentPaint: DOMHighResTimeStamp;           // FCP
@@ -101,21 +108,23 @@ interface Paint extends PerformanceImpl {
 export interface BehaviorImpl extends TrackDataBase {
   type:"behavior";
   pageURL:string;
-  uuid: string;           // todo
+  uuid: string;          
 }
 
-interface Pv extends BehaviorImpl {
+export interface Pv extends BehaviorImpl {
   behaviorType:"pv";
 }
 
-interface StayTime extends BehaviorImpl {
+export interface StayTime extends BehaviorImpl {
   behaviorType: "staytime";
   stayTime: DOMHighResTimeStamp;
 }
 /*--------------------------------------------------- */
 
 
-
+/**
+ * 监控数据类型
+ */
 export type TrackData = (
   JSError | ResourceError | BlankError |
   HttpRequest | Timing | Paint |
@@ -123,3 +132,76 @@ export type TrackData = (
   );
 
 
+/**
+ * RequestIdleCallback(callback[, options]) 
+ * 中 callback 被传入的参数类型
+ */
+export type Deadline = {
+  timeRemaining: () => number // 当前剩余的可用时间
+  didTimeout: boolean // 是否超时
+}
+
+/**
+ * detectUserAgent 使用到的类型
+ */
+export type Browser =
+  | 'welike'
+  | 'vidmate'
+  | 'aol'
+  | 'edge'
+  | 'yandexbrowser'
+  | 'vivaldi'
+  | 'kakaotalk'
+  | 'samsung'
+  | 'chrome'
+  | 'phantomjs'
+  | 'crios'
+  | 'firefox'
+  | 'fxios'
+  | 'opera'
+  | 'ie'
+  | 'bb10'
+  | 'android'
+  | 'ios'
+  | 'safari'
+  | 'facebook'
+  | 'instagram'
+  | 'ios-webview'
+  | 'searchbot'
+
+export type OperatingSystem =
+  | 'iOS'
+  | 'Android OS'
+  | 'BlackBerry OS'
+  | 'Windows Mobile'
+  | 'Amazon OS'
+  | 'Windows 3.11'
+  | 'Windows 95'
+  | 'Windows 98'
+  | 'Windows 2000'
+  | 'Windows XP'
+  | 'Windows Server 2003'
+  | 'Windows Vista'
+  | 'Windows 7'
+  | 'Windows 8'
+  | 'Windows 8.1'
+  | 'Windows 10'
+  | 'Windows ME'
+  | 'Open BSD'
+  | 'Sun OS'
+  | 'Linux'
+  | 'Mac OS'
+  | 'QNX'
+  | 'BeOS'
+  | 'OS/2'
+  | 'Search Bot';
+
+export type UserAgentRule = [Browser, RegExp]
+export type UserAgentMatch = [Browser, RegExpExecArray] | false;
+export type OperatingSystemRule = [OperatingSystem, RegExp];
+
+export interface DetectedInfo<N extends string, O, V = null> {
+  readonly name: N
+  readonly version: V
+  readonly os: O
+}
