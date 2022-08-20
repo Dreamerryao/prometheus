@@ -4,7 +4,7 @@
 interface TrackDataBase {
     title: string;
     url: string;
-    timestamp: DOMHighResTimeStamp;
+    timestamp: string;
     referrer: string;
     userAgent: string;
 }

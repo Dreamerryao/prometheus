@@ -6,7 +6,7 @@
  interface TrackDataBase {
   title: string;                    // 页面标题
   url: string;                      // 页面 url
-  timestamp: DOMHighResTimeStamp;   // 时间戳
+  timestamp: string;   // 时间戳
   referrer: string;                 // 来源 url
   // navigationType: string;           // 跳转类型
   userAgent: string;                // 用户代理

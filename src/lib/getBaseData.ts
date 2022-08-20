@@ -13,7 +13,7 @@ export function getBaseData() {
   const userAgent = detectUserAgent().toString()
   console.log(userAgent)
   const url = document.location.origin
-  const timestamp: DOMHighResTimeStamp = Date.now()
+  const timestamp = Date.now().toString()
   // 旧的 api 已经弃用
   // 新的用不了
   // const navigationtype = performance.navigation.type

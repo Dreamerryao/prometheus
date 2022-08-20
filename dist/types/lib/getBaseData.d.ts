@@ -6,7 +6,7 @@
 export declare function getBaseData(): {
     title: string;
     url: string;
-    timestamp: number;
+    timestamp: string;
     referrer: string;
     userAgent: string;
 };
