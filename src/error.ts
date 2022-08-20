@@ -19,7 +19,7 @@ export function error():void {
                 errorMessage: ev.message,
                 tagName: target.tagName,
                 time: ev.timeStamp,
-                size: 0
+                size: "0"
             }
             console.log("sendResouceError", data)
             addTask(data);

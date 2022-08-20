@@ -37,7 +37,7 @@ export interface ResourceError extends ErrorImpl {
   filename: string;
   errorMessage: string;
   tagName: string;
-  size: number;
+  size: string;
   time: DOMHighResTimeStamp;
 }
 
