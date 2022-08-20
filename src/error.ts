@@ -14,7 +14,7 @@ export function error():void {
             const data: ResourceError = {
                 ...getBaseData(),
                 type: "error",
-                errorType: "resouceError",
+                errorType: "resourceError",
                 filename: target.src || target.href,
                 errorMessage: ev.message,
                 tagName: target.tagName,

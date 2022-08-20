@@ -33,7 +33,7 @@ export interface JSError extends ErrorImpl {
  * ResouceError 资源加载错误
  */
 export interface ResourceError extends ErrorImpl {
-  errorType: "resouceError";
+  errorType: "resourceError";
   filename: string;
   errorMessage: string;
   tagName: string;
