@@ -138,7 +138,7 @@ function rewriteFetch(cb:(para1: any,para2: any)=>void) {
                 fetchData.status = response.status
                 fetchData.duration = Date.now() - startTime
                 fetchData.success = response.ok
-                fetchData.responseHeader = response.headers 
+                fetchData.responseHeader = JSON.stringify(response.headers)
                 //TODO: fetchData.responseBody = response.body  // response.body是一个流
 
                 //TODO: 请求头和请求体取不到
